@@ -129,6 +129,12 @@ var game = (() => {
     var wallSixPhysicsMaterial: Physijs.Material;
     var wallSixMaterial: PhongMaterial;
     var wallSix: Physijs.Mesh;
+    
+    var berryTexture: Texture;
+    var berryGeometry: CubeGeometry;
+    var berryPhysicsMaterial: Physijs.Material;
+    var berryMaterial: PhongMaterial;
+    var berry: Physijs.Mesh;
 
     function init() {
         // Create to HTMLElements
@@ -286,7 +292,7 @@ var game = (() => {
         wallTwo.position.set(6, 2.5, 6.4);
         wallTwo.rotateY(1.5708);
         wallTwo.receiveShadow = true;
-        wallTwo.name = "Wall2";
+        wallTwo.name = "Wall";
         scene.add(wallTwo);
         console.log("Added Wall2 to scene");
 
@@ -296,7 +302,7 @@ var game = (() => {
         wallThree.position.set(-10, 2.5, -6.1);
         wallThree.rotateY(1.5708);
         wallThree.receiveShadow = true;
-        wallThree.name = "Wall3";
+        wallThree.name = "Wall";
         scene.add(wallThree);
         console.log("Added Wall3 to scene");
 
@@ -306,7 +312,7 @@ var game = (() => {
         wallFour.position.set(-1.9, 2.5, -13);
         wallFour.rotateY(1.5708);
         wallFour.receiveShadow = true;
-        wallFour.name = "Wall4";
+        wallFour.name = "Wall";
         scene.add(wallFour);
         console.log("Added Wall4 to scene");
 
@@ -315,7 +321,7 @@ var game = (() => {
         wallFive = new Physijs.ConvexMesh(wallFiveGeometry, wallFivePhysicsMaterial, 0);
         wallFive.position.set(-7.7, 2.5, 9.7);
         wallFive.receiveShadow = true;
-        wallFive.name = "Wall5";
+        wallFive.name = "Wall";
         scene.add(wallFive);
         console.log("Added Wall5 to scene");
 
@@ -324,8 +330,25 @@ var game = (() => {
         wallSix = new Physijs.ConvexMesh(wallSixGeometry, wallSixPhysicsMaterial, 0);
         wallSix.position.set(-7.6, 2.5, -3.85);
         wallSix.receiveShadow = true;
-        wallSix.name = "Wall6";
+        wallSix.name = "Wall";
         scene.add(wallSix);
+        console.log("Added Wall6 to scene");
+        
+        //Collectables Object
+        berryTexture = new THREE.TextureLoader().load('../../Assets/images/berry.jpg');
+        berryTexture.wrapS = THREE.RepeatWrapping;
+        berryTexture.wrapT = THREE.RepeatWrapping;
+        //berryTexture.repeat.set(8, 8);
+        berryMaterial = new PhongMaterial();
+        berryMaterial.map = berryTexture;
+        
+        berryGeometry = new BoxGeometry(.5, .5, .5);
+        berryPhysicsMaterial = Physijs.createMaterial(berryMaterial, 0, 0);
+        berry = new Physijs.ConvexMesh(berryGeometry, berryPhysicsMaterial, 0);
+        berry.position.set(-8.5, 1.5, -5.5);
+        berry.receiveShadow = true;
+        berry.name = "Berry";
+        scene.add(berry);
         console.log("Added Wall6 to scene");
 
         // Player Object
