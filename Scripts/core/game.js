@@ -441,10 +441,6 @@ var game = (function () {
         if (player.position.y <= -20) {
             player.position.set(0, 20, 0);
             player.__dirtyPosition = true;
-            velocity.y -= 5 * speed * delta;
-            direction.addVectors(direction, velocity);
-            direction.applyQuaternion(player.quaternion);
-            player.applyCentralForce(direction);
         }
     }
     // Camera Look function
