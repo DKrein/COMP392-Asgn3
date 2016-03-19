@@ -32,6 +32,7 @@ import Face3 = THREE.Face3;
 import Point = objects.Point;
 import CScreen = config.Screen;
 import Clock = THREE.Clock;
+import ImageUtils = THREE.ImageUtils;
 
 //Custom Game Objects
 import gameObject = objects.gameObject;
@@ -129,6 +130,8 @@ var game = (() => {
     var wallSixPhysicsMaterial: Physijs.Material;
     var wallSixMaterial: PhongMaterial;
     var wallSix: Physijs.Mesh;
+
+    var skyBox: Mesh;    
     
     var berryTexture: Texture;
     var berryGeometry: CubeGeometry;
@@ -235,7 +238,7 @@ var game = (() => {
         island = new Physijs.ConvexMesh(islandGeometry, islandPhysicsMaterial, 0);
         island.position.set(-17, 0, 0);
         island.receiveShadow = true;
-        island.name = "Island1";
+        island.name = "Ground";
         scene.add(island);
         console.log("Added Island1 to scene");
 
@@ -244,7 +247,7 @@ var game = (() => {
         islandTwo = new Physijs.ConvexMesh(islandTwoGeometry, islandTwoPhysicsMaterial, 0);
         islandTwo.position.set(17, 0, 0);
         islandTwo.receiveShadow = true;
-        islandTwo.name = "Island2";
+        islandTwo.name = "Ground";
         scene.add(islandTwo);
         console.log("Added Island2 to scene");
 
@@ -254,7 +257,7 @@ var game = (() => {
         islandThree.position.set(0, 0, -17);
         islandThree.rotateY(1.5708);
         islandThree.receiveShadow = true;
-        islandThree.name = "Island3";
+        islandThree.name = "Ground";
         scene.add(islandThree);
         console.log("Added Island3 to scene");
 
@@ -264,7 +267,7 @@ var game = (() => {
         islandFour.position.set(0, 0, 17);
         islandFour.rotateY(1.5708);
         islandFour.receiveShadow = true;
-        islandFour.name = "Island4";
+        islandFour.name = "Ground";
         scene.add(islandFour);
         console.log("Added Island4 to scene");
         
@@ -334,6 +337,13 @@ var game = (() => {
         scene.add(wallSix);
         console.log("Added Wall6 to scene");
         
+        skyBox = new gameObject(new SphereGeometry(60, 60, 60), new LambertMaterial({map: ImageUtils.loadTexture('../../Assets/Images/skyBG.jpg')}), 2, 2, 2);
+        skyBox.material.side = THREE.DoubleSide;
+        skyBox.name = "Skybox";
+        
+        scene.add(skyBox);
+        console.log("Added skyBox to scene");
+        
         //Collectables Object
         berryTexture = new THREE.TextureLoader().load('../../Assets/images/berry.jpg');
         berryTexture.wrapS = THREE.RepeatWrapping;
@@ -360,20 +370,19 @@ var game = (() => {
         player.receiveShadow = true;
         player.castShadow = true;
         player.name = "Player";
+        player._physijs.mass = 1.7;
         scene.add(player);
         console.log("Added Player to Scene");
+        player.setAngularFactor(new THREE.Vector3(0, 0, 0));
 
         // Collision Check
         player.addEventListener('collision', (event) => {
 
             console.log(event);
 
-            if (event.name === "Ground") {
+            if (event.name === "Ground" || event.name === "Wall") {
                 console.log("player hit the ground");
                 isGrounded = true;
-            }
-            if (event.name === "Sphere") {
-                console.log("player hit the sphere");
             }
         });
 
@@ -389,18 +398,6 @@ var game = (() => {
         // create parent-child relationship with camera and player
         player.add(camera);
         camera.position.set(0, 1, 0);
-        
-
-        // Sphere Object
-        sphereGeometry = new SphereGeometry(2, 32, 32);
-        sphereMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0x00ff00 }), 0.4, 0);
-        sphere = new Physijs.SphereMesh(sphereGeometry, sphereMaterial, 1);
-        sphere.position.set(0, 60, 5);
-        sphere.receiveShadow = true;
-        sphere.castShadow = true;
-        sphere.name = "Sphere";
-        //scene.add(sphere);
-        //console.log("Added Sphere to Scene");
 
         // add controls
         gui = new GUI();
@@ -470,7 +467,7 @@ var game = (() => {
 
         checkControls();
 
-
+        
 
 
         // render using requestAnimationFrame
@@ -488,27 +485,33 @@ var game = (() => {
 
             var time: number = performance.now();
             var delta: number = (time - prevTime) / 1000;
-
-            if (isGrounded) {
+            
+            var speed: number = 600.0;
+            
+            //if (isGrounded) {
                 var direction = new Vector3(0, 0, 0);
                 if (keyboardControls.moveForward) {
-                    velocity.z -= 400.0 * delta;
+                    velocity.z -= speed * delta;
                 }
                 if (keyboardControls.moveLeft) {
-                    velocity.x -= 400.0 * delta;
+                    velocity.x -= speed * delta;
                 }
                 if (keyboardControls.moveBackward) {
-                    velocity.z += 400.0 * delta;
+                    velocity.z += speed * delta;
                 }
                 if (keyboardControls.moveRight) {
-                    velocity.x += 400.0 * delta;
+                    velocity.x += speed * delta;
                 }
-                if (keyboardControls.jump) {
-                    velocity.y += 4000.0 * delta;
-                    if (player.position.y > 4) {
-                        isGrounded = false;
+                if (keyboardControls.jump && isGrounded) {
+                    
+                    if (player.position.y >= 1 && player.position.y <= 3) {
+                        velocity.y += 10 * speed * delta;    
+                    } else if (player.position.y > 3){
+                        isGrounded = false;    
                     }
+                    
                 }
+                
 
                 player.setDamping(0.7, 0.1);
                 // Changing player's rotation
@@ -521,7 +524,8 @@ var game = (() => {
 
                 cameraLook();
 
-            } // isGrounded ends
+            //}
+            // isGrounded ends
 
             //reset Pitch and Yaw
             mouseControls.pitch = 0;
@@ -531,6 +535,12 @@ var game = (() => {
         } // Controls Enabled ends
         else {
             player.setAngularVelocity(new Vector3(0, 0, 0));
+        }
+        
+        
+        if (player.position.y <= -20) {
+            player.position.set(0, 20, 0);
+            player.__dirtyPosition = true;
         }
     }
 
