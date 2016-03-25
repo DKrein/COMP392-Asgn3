@@ -138,16 +138,17 @@ var game = (function () {
     var livesLabel;
     var scoreValue;
     var livesValue;
-    // var manifest = [
-    //      { id: "SOUNDS", src: "../../Assets/sound/somesound.wav" }
-    // ];
-    // //Create Preloader to load Assets
-    // function preload(): void {
-    //     assets = new createjs.LoadQueue();
-    //     assets.installPlugin(createjs.Sound);
-    //     assets.on("complete", init, this);
-    //     assets.loadManifest(manifest);
-    // }
+    var manifest = [
+        { id: "Collision", src: "../../Assets/sounds/collision.mp3" },
+        { id: "Collect", src: "../../Assets/sounds/collecting.mp3" }
+    ];
+    //Create Preloader to load Assets
+    function preload() {
+        assets = new createjs.LoadQueue();
+        assets.installPlugin(createjs.Sound);
+        assets.on("complete", init, this);
+        assets.loadManifest(manifest);
+    }
     //Create Canvas
     function setupCanvas() {
         canvas = document.getElementById("canvas");
@@ -416,6 +417,7 @@ var game = (function () {
                 isGrounded = true;
             }
             if (event.name === "Berry") {
+                createjs.Sound.play("Collect");
                 console.log("player ate a berry");
                 scene.remove(event);
                 scene.add(event);
@@ -426,8 +428,9 @@ var game = (function () {
                 scene.add(rock);
                 console.log("Added Rock to scene");
             }
-            if (event.name === "Rock") {
-                livesValue--;
+            if (event.name === "Rock" && rock.position.y > 2) {
+                createjs.Sound.play("Collision");
+                livesValue = livesValue - 2;
                 livesLabel.text = "LIVES: " + livesValue;
                 console.log("YOU GOT HIT BY A ROCK!");
             }
@@ -592,8 +595,8 @@ var game = (function () {
         //camera.lookAt(new Vector3(0, 0, 0));
         console.log("Finished setting up Camera...");
     }
-    // window.onload = preload;
-    window.onload = init;
+    window.onload = preload;
+    // window.onload = init;
     return {
         scene: scene
     };
