@@ -162,17 +162,18 @@ var game = (() => {
     var livesValue: number;
 
 
-    // var manifest = [
-    //      { id: "SOUNDS", src: "../../Assets/sound/somesound.wav" }
-    // ];
+    var manifest = [
+         { id: "Collision", src: "../../Assets/sounds/collision.mp3" },
+         { id: "Collect", src: "../../Assets/sounds/collecting.mp3" }
+    ];
 
-    // //Create Preloader to load Assets
-    // function preload(): void {
-    //     assets = new createjs.LoadQueue();
-    //     assets.installPlugin(createjs.Sound);
-    //     assets.on("complete", init, this);
-    //     assets.loadManifest(manifest);
-    // }
+    //Create Preloader to load Assets
+    function preload(): void {
+        assets = new createjs.LoadQueue();
+        assets.installPlugin(createjs.Sound);
+        assets.on("complete", init, this);
+        assets.loadManifest(manifest);
+    }
     
     //Create Canvas
     function setupCanvas(): void {
@@ -503,6 +504,7 @@ var game = (() => {
             }
 
             if (event.name === "Berry") {
+                 createjs.Sound.play("Collect");
                 console.log("player ate a berry");
                 scene.remove(event);
                 scene.add(event);
@@ -516,6 +518,7 @@ var game = (() => {
             }
             
             if(event.name === "Rock" && rock.position.y > 2){
+                createjs.Sound.play("Collision");
                 livesValue = livesValue - 2;
                 livesLabel.text = "LIVES: " + livesValue;
                 console.log("YOU GOT HIT BY A ROCK!");
@@ -719,8 +722,8 @@ var game = (() => {
         console.log("Finished setting up Camera...");
     }
 
-    // window.onload = preload;
-    window.onload = init;
+    window.onload = preload;
+    // window.onload = init;
 
     return {
         scene: scene
