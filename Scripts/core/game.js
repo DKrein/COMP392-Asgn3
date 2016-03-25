@@ -120,6 +120,16 @@ var game = (function () {
         new THREE.Vector3(-5.5, 1.5, -9.5),
         new THREE.Vector3(-3, 1.5, -5.5)
     ];
+    var rockTexture;
+    var rockGeometry;
+    var rockPhysicsMaterial;
+    var rockMaterial;
+    var rock;
+    var plateTexture;
+    var plateGeometry;
+    var platePhysicsMaterial;
+    var plateMaterial;
+    var plate;
     //CreateJS Related Variables
     var assets;
     var canvas;
@@ -361,6 +371,31 @@ var game = (function () {
         berry.name = "Berry";
         scene.add(berry);
         console.log("Added Berry to scene");
+        //Collision Object
+        rockTexture = new THREE.TextureLoader().load('../../Assets/images/rock.jpg');
+        rockTexture.wrapS = THREE.RepeatWrapping;
+        rockTexture.wrapT = THREE.RepeatWrapping;
+        rockMaterial = new PhongMaterial();
+        rockMaterial.map = rockTexture;
+        rockGeometry = new SphereGeometry(1, 5, 5);
+        rockPhysicsMaterial = Physijs.createMaterial(rockMaterial, 0, 0);
+        rock = new Physijs.ConvexMesh(rockGeometry, rockPhysicsMaterial, 1);
+        rock.position.set(-4, 10, -5.5);
+        rock.receiveShadow = true;
+        rock.name = "Rock";
+        //Plate Object
+        plateTexture = new THREE.TextureLoader().load('../../Assets/images/PressurePlate.jpg');
+        plateTexture.wrapS = THREE.RepeatWrapping;
+        plateTexture.wrapT = THREE.RepeatWrapping;
+        plateMaterial = new PhongMaterial();
+        plateMaterial.map = plateTexture;
+        plateGeometry = new CubeGeometry(1, 0.001, 1);
+        platePhysicsMaterial = Physijs.createMaterial(plateMaterial, 0, 0);
+        plate = new Physijs.ConvexMesh(plateGeometry, platePhysicsMaterial, 0);
+        plate.position.set(1, .5, -5.5);
+        plate.receiveShadow = true;
+        plate.name = "Plate";
+        scene.add(plate);
         // Player Object
         playerGeometry = new BoxGeometry(2, 4, 2);
         playerMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0x00ff00 }), 0.4, 0);
@@ -386,6 +421,15 @@ var game = (function () {
                 scene.add(event);
                 scoreValue += 2;
                 scoreLabel.text = "SCORE: " + scoreValue;
+            }
+            if (event.name === "Plate") {
+                scene.add(rock);
+                console.log("Added Rock to scene");
+            }
+            if (event.name === "Rock") {
+                livesValue--;
+                livesLabel.text = "LIVES: " + livesValue;
+                console.log("YOU GOT HIT BY A ROCK!");
             }
         });
         // Add DirectionLine
