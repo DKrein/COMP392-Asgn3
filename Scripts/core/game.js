@@ -6,25 +6,15 @@ var Renderer = THREE.WebGLRenderer;
 var PerspectiveCamera = THREE.PerspectiveCamera;
 var BoxGeometry = THREE.BoxGeometry;
 var CubeGeometry = THREE.CubeGeometry;
-var PlaneGeometry = THREE.PlaneGeometry;
 var SphereGeometry = THREE.SphereGeometry;
 var Geometry = THREE.Geometry;
-var AxisHelper = THREE.AxisHelper;
 var LambertMaterial = THREE.MeshLambertMaterial;
-var MeshBasicMaterial = THREE.MeshBasicMaterial;
 var LineBasicMaterial = THREE.LineBasicMaterial;
 var PhongMaterial = THREE.MeshPhongMaterial;
-var Material = THREE.Material;
-var Texture = THREE.Texture;
 var Line = THREE.Line;
-var Mesh = THREE.Mesh;
-var Object3D = THREE.Object3D;
 var SpotLight = THREE.SpotLight;
-var PointLight = THREE.PointLight;
 var AmbientLight = THREE.AmbientLight;
-var Color = THREE.Color;
 var Vector3 = THREE.Vector3;
-var Face3 = THREE.Face3;
 var CScreen = config.Screen;
 var Clock = THREE.Clock;
 var ImageUtils = THREE.ImageUtils;
@@ -113,13 +103,9 @@ var game = (function () {
     var berryGeometry;
     var berryPhysicsMaterial;
     var berryMaterial;
-    // var berry: Physijs.Mesh[];
     var berry;
-    var berryLocation = [
-        new THREE.Vector3(-8.5, 1.5, -5.5),
-        new THREE.Vector3(-5.5, 1.5, -9.5),
-        new THREE.Vector3(-3, 1.5, -5.5)
-    ];
+    var berryLocation = new Array();
+    var berryNum = 0;
     var rockTexture;
     var rockGeometry;
     var rockPhysicsMaterial;
@@ -192,6 +178,11 @@ var game = (function () {
         havePointerLock = 'pointerLockElement' in document ||
             'mozPointerLockElement' in document ||
             'webkitPointerLockElement' in document;
+        //define berry positions        
+        berryLocation.push(new THREE.Vector3(-8.5, 1.5, -5.5));
+        berryLocation.push(new THREE.Vector3(-2, 1.5, 16));
+        berryLocation.push(new THREE.Vector3(17, 1.5, 0));
+        berryLocation.push(new THREE.Vector3(-15, 1.5, -2));
         // Instantiate Game Controls
         keyboardControls = new objects.KeyboardControls();
         mouseControls = new objects.MouseControls();
@@ -411,18 +402,13 @@ var game = (function () {
         player.setAngularFactor(new THREE.Vector3(0, 0, 0));
         // Collision Check
         player.addEventListener('collision', function (event) {
-            console.log(event);
             if (event.name === "Ground" || event.name === "Wall") {
                 console.log("player hit the ground");
                 isGrounded = true;
             }
             if (event.name === "Berry") {
-                createjs.Sound.play("Collect");
                 console.log("player ate a berry");
-                scene.remove(event);
-                scene.add(event);
-                scoreValue += 2;
-                scoreLabel.text = "SCORE: " + scoreValue;
+                berryPicked(event);
             }
             if (event.name === "Plate") {
                 scene.add(rock);
@@ -453,6 +439,17 @@ var game = (function () {
         gameLoop(); // render the scene	
         scene.simulate();
         window.addEventListener('resize', onWindowResize, false);
+    }
+    //Check player position and kills player if they fall
+    function berryPicked(berryPicked) {
+        scene.remove(berryPicked);
+        berryNum = berryNum === (berryLocation.length - 1) ? 0 : (berryNum + 1);
+        berryPicked.position.x = berryLocation[berryNum].x;
+        berryPicked.position.y = berryLocation[berryNum].y;
+        berryPicked.position.z = berryLocation[berryNum].z;
+        scene.add(berryPicked);
+        scoreValue += 2;
+        scoreLabel.text = "SCORE: " + scoreValue;
     }
     //Check player position and kills player if they fall
     function checkDeathPosition() {
@@ -566,10 +563,6 @@ var game = (function () {
         else {
             player.setAngularVelocity(new Vector3(0, 0, 0));
         }
-        // if (player.position.y <= -20) {
-        //     player.position.set(0, 20, 0);
-        //     //player.__dirtyPosition = true;
-        // }
     }
     // Camera Look function
     function cameraLook() {
@@ -601,5 +594,4 @@ var game = (function () {
         scene: scene
     };
 })();
-
 //# sourceMappingURL=game.js.map

@@ -132,13 +132,9 @@ var game = (() => {
     var berryGeometry: CubeGeometry;
     var berryPhysicsMaterial: Physijs.Material;
     var berryMaterial: PhongMaterial;
-    // var berry: Physijs.Mesh[];
     var berry: Physijs.Mesh;
-    var berryLocation = [
-        new THREE.Vector3(-8.5, 1.5, -5.5),
-        new THREE.Vector3(-5.5, 1.5, -9.5),
-        new THREE.Vector3(-3, 1.5, -5.5)
-    ];
+    var berryLocation: Array<THREE.Vector3> = new Array<THREE.Vector3>();
+    var berryNum: number = 0;
 
     var rockTexture: Texture;
     var rockGeometry: SphereGeometry;
@@ -235,6 +231,12 @@ var game = (() => {
         havePointerLock = 'pointerLockElement' in document ||
             'mozPointerLockElement' in document ||
             'webkitPointerLockElement' in document;
+            
+        //define berry positions        
+        berryLocation.push(new THREE.Vector3(-8.5, 1.5, -5.5));
+        berryLocation.push(new THREE.Vector3(-2, 1.5, 16));
+        berryLocation.push(new THREE.Vector3(17, 1.5, 0));
+        berryLocation.push(new THREE.Vector3(-15, 1.5, -2));
 
         // Instantiate Game Controls
         keyboardControls = new objects.KeyboardControls();
@@ -496,20 +498,14 @@ var game = (() => {
         // Collision Check
         player.addEventListener('collision', (event) => {
 
-            console.log(event);
-
             if (event.name === "Ground" || event.name === "Wall") {
                 console.log("player hit the ground");
                 isGrounded = true;
             }
 
             if (event.name === "Berry") {
-                 createjs.Sound.play("Collect");
                 console.log("player ate a berry");
-                scene.remove(event);
-                scene.add(event);
-                scoreValue += 2;
-                scoreLabel.text = "SCORE: " + scoreValue;
+                berryPicked(event);                
             }
 
             if (event.name === "Plate") {
@@ -547,6 +543,21 @@ var game = (() => {
         scene.simulate();
 
         window.addEventListener('resize', onWindowResize, false);
+    }
+    
+    //Check player position and kills player if they fall
+    function berryPicked(berryPicked): void {
+        scene.remove(berryPicked);
+        
+        berryNum = berryNum === (berryLocation.length-1) ? 0 : (berryNum + 1);
+
+        berryPicked.position.x = berryLocation[berryNum].x;
+        berryPicked.position.y = berryLocation[berryNum].y;
+        berryPicked.position.z = berryLocation[berryNum].z;
+
+        scene.add(berryPicked);
+        scoreValue += 2;
+        scoreLabel.text = "SCORE: " + scoreValue;
     }
     
     //Check player position and kills player if they fall
@@ -615,9 +626,6 @@ var game = (() => {
         checkControls();
         stage.update();
 
-        
-
-
         // render using requestAnimationFrame
         requestAnimationFrame(gameLoop);
 
@@ -684,12 +692,6 @@ var game = (() => {
         else {
             player.setAngularVelocity(new Vector3(0, 0, 0));
         }
-
-
-        // if (player.position.y <= -20) {
-        //     player.position.set(0, 20, 0);
-        //     //player.__dirtyPosition = true;
-        // }
     }
 
     // Camera Look function
