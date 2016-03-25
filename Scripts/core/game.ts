@@ -132,9 +132,26 @@ var game = (() => {
     var berryGeometry: CubeGeometry;
     var berryPhysicsMaterial: Physijs.Material;
     var berryMaterial: PhongMaterial;
+    // var berry: Physijs.Mesh[];
     var berry: Physijs.Mesh;
-    
-    
+    var berryLocation = [
+        new THREE.Vector3(-8.5, 1.5, -5.5),
+        new THREE.Vector3(-5.5, 1.5, -9.5),
+        new THREE.Vector3(-3, 1.5, -5.5)
+    ];
+
+    var rockTexture: Texture;
+    var rockGeometry: SphereGeometry;
+    var rockPhysicsMaterial: Physijs.Material;
+    var rockMaterial: PhongMaterial;
+    var rock: Physijs.Mesh;
+
+    var plateTexture: Texture;
+    var plateGeometry: CubeGeometry;
+    var platePhysicsMaterial: Physijs.Material;
+    var plateMaterial: PhongMaterial;
+    var plate: Physijs.Mesh;
+     
     //CreateJS Related Variables
     var assets: createjs.LoadQueue;
     var canvas: HTMLElement;
@@ -194,7 +211,7 @@ var game = (() => {
         console.log("Added Score Label to stage");
     }
 
-    
+
     function labelResize(): void {
         livesLabel.x = config.Screen.WIDTH * 0.1;
         livesLabel.y = (config.Screen.HEIGHT * 0.15) * 0.1;
@@ -414,13 +431,15 @@ var game = (() => {
         console.log("Added skyBox to scene");
         
         //Collectables Object
+     
         berryTexture = new THREE.TextureLoader().load('../../Assets/images/berry.jpg');
         berryTexture.wrapS = THREE.RepeatWrapping;
         berryTexture.wrapT = THREE.RepeatWrapping;
-        //berryTexture.repeat.set(8, 8);
         berryMaterial = new PhongMaterial();
         berryMaterial.map = berryTexture;
-
+        
+        //var berryPick = Math.floor(Math.random() * 3) + 1;
+        
         berryGeometry = new BoxGeometry(.5, .5, .5);
         berryPhysicsMaterial = Physijs.createMaterial(berryMaterial, 0, 0);
         berry = new Physijs.ConvexMesh(berryGeometry, berryPhysicsMaterial, 0);
@@ -428,7 +447,36 @@ var game = (() => {
         berry.receiveShadow = true;
         berry.name = "Berry";
         scene.add(berry);
-        console.log("Added Wall6 to scene");
+        console.log("Added Berry to scene");
+        
+        //Collision Object
+        rockTexture = new THREE.TextureLoader().load('../../Assets/images/rock.jpg');
+        rockTexture.wrapS = THREE.RepeatWrapping;
+        rockTexture.wrapT = THREE.RepeatWrapping;
+        rockMaterial = new PhongMaterial();
+        rockMaterial.map = rockTexture;
+
+        rockGeometry = new SphereGeometry(1, 5, 5);
+        rockPhysicsMaterial = Physijs.createMaterial(rockMaterial, 0, 0);
+        rock = new Physijs.ConvexMesh(rockGeometry, rockPhysicsMaterial, 1);
+        rock.position.set(-4, 10, -5.5);
+        rock.receiveShadow = true;
+        rock.name = "Rock";
+        
+        //Plate Object
+        plateTexture = new THREE.TextureLoader().load('../../Assets/images/PressurePlate.jpg');
+        plateTexture.wrapS = THREE.RepeatWrapping;
+        plateTexture.wrapT = THREE.RepeatWrapping;
+        plateMaterial = new PhongMaterial();
+        plateMaterial.map = plateTexture;
+
+        plateGeometry = new CubeGeometry(1, 0.001, 1);
+        platePhysicsMaterial = Physijs.createMaterial(plateMaterial, 0, 0);
+        plate = new Physijs.ConvexMesh(plateGeometry, platePhysicsMaterial, 0);
+        plate.position.set(1, .5, -5.5);
+        plate.receiveShadow = true;
+        plate.name = "Plate";
+        scene.add(plate);
 
         // Player Object
         playerGeometry = new BoxGeometry(2, 4, 2);
@@ -452,6 +500,25 @@ var game = (() => {
             if (event.name === "Ground" || event.name === "Wall") {
                 console.log("player hit the ground");
                 isGrounded = true;
+            }
+
+            if (event.name === "Berry") {
+                console.log("player ate a berry");
+                scene.remove(event);
+                scene.add(event);
+                scoreValue += 2;
+                scoreLabel.text = "SCORE: " + scoreValue;
+            }
+
+            if (event.name === "Plate") {
+                scene.add(rock);
+                console.log("Added Rock to scene");
+            }
+            
+            if(event.name === "Rock"){
+                livesValue--;
+                livesLabel.text = "LIVES: " + livesValue;
+                console.log("YOU GOT HIT BY A ROCK!");
             }
         });
 
@@ -477,6 +544,18 @@ var game = (() => {
         scene.simulate();
 
         window.addEventListener('resize', onWindowResize, false);
+    }
+    
+    //Check player position and kills player if they fall
+    function checkDeathPosition(): void {
+        if (player.position.y < -20) {
+            livesValue--;
+            livesLabel.text = "LIVES: " + livesValue;
+            scene.remove(player);
+            player.position.set(0, 30, 0);
+            scene.add(player);
+            console.log("YOU HAVE DIED!");
+        }
     }
 
     //PointerLockChange Event Handler
@@ -512,10 +591,6 @@ var game = (() => {
 
         canvas.style.width = "100%";
         labelResize();
-        // livesLabel.x = config.Screen.WIDTH * 0.1;
-        // livesLabel.y = (config.Screen.HEIGHT * 0.1) * 0.3;
-        // scoreLabel.x = config.Screen.WIDTH * 0.8;
-        // scoreLabel.y = (config.Screen.HEIGHT * 0.1) * 0.3;
         stage.update();
     }
 
@@ -533,6 +608,7 @@ var game = (() => {
     function gameLoop(): void {
         stats.update();
 
+        checkDeathPosition();
         checkControls();
         stage.update();
 
@@ -607,10 +683,10 @@ var game = (() => {
         }
 
 
-        if (player.position.y <= -20) {
-            player.position.set(0, 20, 0);
-            //player.__dirtyPosition = true;
-        }
+        // if (player.position.y <= -20) {
+        //     player.position.set(0, 20, 0);
+        //     //player.__dirtyPosition = true;
+        // }
     }
 
     // Camera Look function
