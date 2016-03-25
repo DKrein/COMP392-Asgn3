@@ -113,7 +113,13 @@ var game = (function () {
     var berryGeometry;
     var berryPhysicsMaterial;
     var berryMaterial;
+    // var berry: Physijs.Mesh[];
     var berry;
+    var berryLocation = [
+        new THREE.Vector3(-8.5, 1.5, -5.5),
+        new THREE.Vector3(-5.5, 1.5, -9.5),
+        new THREE.Vector3(-3, 1.5, -5.5)
+    ];
     //CreateJS Related Variables
     var assets;
     var canvas;
@@ -344,9 +350,9 @@ var game = (function () {
         berryTexture = new THREE.TextureLoader().load('../../Assets/images/berry.jpg');
         berryTexture.wrapS = THREE.RepeatWrapping;
         berryTexture.wrapT = THREE.RepeatWrapping;
-        //berryTexture.repeat.set(8, 8);
         berryMaterial = new PhongMaterial();
         berryMaterial.map = berryTexture;
+        //var berryPick = Math.floor(Math.random() * 3) + 1;
         berryGeometry = new BoxGeometry(.5, .5, .5);
         berryPhysicsMaterial = Physijs.createMaterial(berryMaterial, 0, 0);
         berry = new Physijs.ConvexMesh(berryGeometry, berryPhysicsMaterial, 0);
@@ -354,7 +360,7 @@ var game = (function () {
         berry.receiveShadow = true;
         berry.name = "Berry";
         scene.add(berry);
-        console.log("Added Wall6 to scene");
+        console.log("Added Berry to scene");
         // Player Object
         playerGeometry = new BoxGeometry(2, 4, 2);
         playerMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0x00ff00 }), 0.4, 0);
@@ -373,6 +379,13 @@ var game = (function () {
             if (event.name === "Ground" || event.name === "Wall") {
                 console.log("player hit the ground");
                 isGrounded = true;
+            }
+            if (event.name === "Berry") {
+                console.log("player ate a berry");
+                scene.remove(event);
+                scene.add(event);
+                scoreValue += 2;
+                scoreLabel.text = "SCORE: " + scoreValue;
             }
         });
         // Add DirectionLine
@@ -393,6 +406,17 @@ var game = (function () {
         gameLoop(); // render the scene	
         scene.simulate();
         window.addEventListener('resize', onWindowResize, false);
+    }
+    //Check player position and kills player if they fall
+    function checkDeathPosition() {
+        if (player.position.y < -20) {
+            livesValue--;
+            livesLabel.text = "LIVES: " + livesValue;
+            scene.remove(player);
+            player.position.set(0, 30, 0);
+            scene.add(player);
+            console.log("YOU HAVE DIED!");
+        }
     }
     //PointerLockChange Event Handler
     function pointerLockChange(event) {
@@ -425,10 +449,6 @@ var game = (function () {
         renderer.setSize(window.innerWidth, window.innerHeight);
         canvas.style.width = "100%";
         labelResize();
-        // livesLabel.x = config.Screen.WIDTH * 0.1;
-        // livesLabel.y = (config.Screen.HEIGHT * 0.1) * 0.3;
-        // scoreLabel.x = config.Screen.WIDTH * 0.8;
-        // scoreLabel.y = (config.Screen.HEIGHT * 0.1) * 0.3;
         stage.update();
     }
     // Add Frame Rate Stats to the Scene
@@ -443,6 +463,7 @@ var game = (function () {
     // Setup main game loop
     function gameLoop() {
         stats.update();
+        checkDeathPosition();
         checkControls();
         stage.update();
         // render using requestAnimationFrame
@@ -498,9 +519,10 @@ var game = (function () {
         else {
             player.setAngularVelocity(new Vector3(0, 0, 0));
         }
-        if (player.position.y <= -20) {
-            player.position.set(0, 20, 0);
-        }
+        // if (player.position.y <= -20) {
+        //     player.position.set(0, 20, 0);
+        //     //player.__dirtyPosition = true;
+        // }
     }
     // Camera Look function
     function cameraLook() {
