@@ -515,8 +515,8 @@ var game = (() => {
                 console.log("Added Rock to scene");
             }
             
-            if(event.name === "Rock"){
-                livesValue--;
+            if(event.name === "Rock" && rock.position.y > 2){
+                livesValue = livesValue - 2;
                 livesLabel.text = "LIVES: " + livesValue;
                 console.log("YOU GOT HIT BY A ROCK!");
             }
