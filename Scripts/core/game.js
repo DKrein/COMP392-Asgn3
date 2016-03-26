@@ -26,15 +26,26 @@ var Renderer = THREE.WebGLRenderer;
 var PerspectiveCamera = THREE.PerspectiveCamera;
 var BoxGeometry = THREE.BoxGeometry;
 var CubeGeometry = THREE.CubeGeometry;
+var PlaneGeometry = THREE.PlaneGeometry;
 var SphereGeometry = THREE.SphereGeometry;
+var CylinderGeometry = THREE.CylinderGeometry;
 var Geometry = THREE.Geometry;
+var AxisHelper = THREE.AxisHelper;
 var LambertMaterial = THREE.MeshLambertMaterial;
+var MeshBasicMaterial = THREE.MeshBasicMaterial;
 var LineBasicMaterial = THREE.LineBasicMaterial;
 var PhongMaterial = THREE.MeshPhongMaterial;
+var Material = THREE.Material;
+var Texture = THREE.Texture;
 var Line = THREE.Line;
+var Mesh = THREE.Mesh;
+var Object3D = THREE.Object3D;
 var SpotLight = THREE.SpotLight;
+var PointLight = THREE.PointLight;
 var AmbientLight = THREE.AmbientLight;
+var Color = THREE.Color;
 var Vector3 = THREE.Vector3;
+var Face3 = THREE.Face3;
 var CScreen = config.Screen;
 var Clock = THREE.Clock;
 var ImageUtils = THREE.ImageUtils;
@@ -148,6 +159,12 @@ var game = (function () {
     var plateMaterial;
     var plate;
     var plate2;
+    var plate3;
+    var logTexture;
+    var logGeometry;
+    var logPhysicsMaterial;
+    var logMaterial;
+    var log;
     var rock2a;
     var rock2b;
     //createjs Related Variables
@@ -182,7 +199,7 @@ var game = (function () {
     function setupScoreboard() {
         // initialize  score and lives values
         scoreValue = 0;
-        livesValue = 10;
+        livesValue = 5;
         // Add Lives Label
         livesLabel = new createjs.Text("LIVES: " + livesValue, "40px Consolas", "#ffffff");
         livesLabel.x = config.Screen.WIDTH * 0.1;
@@ -444,6 +461,18 @@ var game = (function () {
         rock2b.position.set(-18, 10, 2);
         rock2b.receiveShadow = true;
         rock2b.name = "Rock";
+        logTexture = new THREE.TextureLoader().load('../../Assets/images/fallingbranch.jpg');
+        logTexture.wrapS = THREE.RepeatWrapping;
+        logTexture.wrapT = THREE.RepeatWrapping;
+        logMaterial = new PhongMaterial();
+        logMaterial.map = logTexture;
+        logGeometry = new CylinderGeometry(1, 1, 10);
+        logPhysicsMaterial = Physijs.createMaterial(logMaterial, 0, 0);
+        log = new Physijs.ConvexMesh(logGeometry, logPhysicsMaterial, 1);
+        log.position.set(4, 10, 10);
+        log.rotation.x = 1.5708;
+        log.receiveShadow = true;
+        log.name = "Log";
         //Plate Object
         plateTexture = new THREE.TextureLoader().load('../../Assets/images/PressurePlate.jpg');
         plateTexture.wrapS = THREE.RepeatWrapping;
@@ -462,6 +491,11 @@ var game = (function () {
         plate2.receiveShadow = true;
         plate2.name = "Plate2";
         scene.add(plate2);
+        plate3 = new Physijs.ConvexMesh(plateGeometry, platePhysicsMaterial, 0);
+        plate3.position.set(4, .5, 9);
+        plate3.receiveShadow = true;
+        plate3.name = "Plate3";
+        scene.add(plate3);
         // Player Object
         playerGeometry = new BoxGeometry(2, 4, 2);
         playerMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0x00ff00 }), 0.4, 0);
@@ -499,12 +533,16 @@ var game = (function () {
                 scene.add(rock2b);
                 console.log("Added Rock to scene");
             }
+            if (event.name === "Plate3") {
+                scene.add(log);
+                console.log("Added Log to scene");
+            }
             if (event.name === "DeathPlane") {
                 createjs.Sound.play("Falling");
                 addDeath();
                 console.log("Dead by falling");
             }
-            if (event.name === "Rock" && event.position.y > 2) {
+            if (event.name === "Rock" || event.name === "Log" && event.position.y > 2) {
                 createjs.Sound.play("Collision");
                 addDeath();
                 console.log("YOU GOT HIT BY A ROCK!");
@@ -522,6 +560,11 @@ var game = (function () {
             }
         });
         rock2b.addEventListener('collision', function (event) {
+            if (event.name === "Ground" || event.name === "Wall") {
+                resetRock();
+            }
+        });
+        log.addEventListener('collision', function (event) {
             if (event.name === "Ground" || event.name === "Wall") {
                 resetRock();
             }
@@ -550,9 +593,11 @@ var game = (function () {
         scene.remove(rock);
         scene.remove(rock2a);
         scene.remove(rock2b);
+        scene.remove(log);
         rock.position.set(-4, 10, -5.5);
         rock2a.position.set(-17, 10, -8);
         rock2b.position.set(-18, 10, 2);
+        log.position.set(4, 10, 10);
     }
     //Check player position and kills player if they fall
     function collectablePicked(collectable) {
@@ -715,4 +760,5 @@ var game = (function () {
         scene: scene
     };
 })();
+
 //# sourceMappingURL=game.js.map
