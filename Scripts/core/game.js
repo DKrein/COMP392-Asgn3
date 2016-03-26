@@ -98,6 +98,10 @@ var game = (function () {
     var wallSixPhysicsMaterial;
     var wallSixMaterial;
     var wallSix;
+    var deathPlaneGeometry;
+    var deathPlanePhysicsMaterial;
+    var deathPlaneMaterial;
+    var deathPlane;
     var skyBox;
     var berryTexture;
     var berryGeometry;
@@ -126,7 +130,8 @@ var game = (function () {
     var livesValue;
     var manifest = [
         { id: "Collision", src: "../../Assets/sounds/collision.mp3" },
-        { id: "Collect", src: "../../Assets/sounds/collecting.mp3" }
+        { id: "Collect", src: "../../Assets/sounds/collecting.mp3" },
+        { id: "Falling", src: "../../Assets/sounds/falling.mp3" }
     ];
     //Create Preloader to load Assets
     function preload() {
@@ -343,6 +348,14 @@ var game = (function () {
         wallSix.name = "Wall";
         scene.add(wallSix);
         console.log("Added Wall6 to scene");
+        deathPlaneGeometry = new BoxGeometry(90, 4, 90);
+        deathPlanePhysicsMaterial = new THREE.MeshLambertMaterial({ color: 0xE5E5FF, transparent: true, opacity: 0.1 });
+        deathPlane = new Physijs.ConvexMesh(deathPlaneGeometry, deathPlanePhysicsMaterial, 0);
+        deathPlane.position.set(0, -20, 0);
+        deathPlane.receiveShadow = false;
+        deathPlane.name = "DeathPlane";
+        scene.add(deathPlane);
+        console.log("Added DeathPlane to scene");
         skyBox = new gameObject(new SphereGeometry(60, 60, 60), new LambertMaterial({ map: ImageUtils.loadTexture('../../Assets/Images/skyBG.jpg') }), 2, 2, 2);
         skyBox.material.side = THREE.DoubleSide;
         skyBox.name = "Skybox";
@@ -407,17 +420,22 @@ var game = (function () {
                 isGrounded = true;
             }
             if (event.name === "Berry") {
-                console.log("player ate a berry");
+                createjs.Sound.play("Collect");
                 berryPicked(event);
+                console.log("player ate a berry");
             }
             if (event.name === "Plate") {
                 scene.add(rock);
                 console.log("Added Rock to scene");
             }
+            if (event.name === "DeathPlane") {
+                createjs.Sound.play("Falling");
+                addDeath();
+                console.log("Dead by falling");
+            }
             if (event.name === "Rock" && rock.position.y > 2) {
                 createjs.Sound.play("Collision");
-                livesValue = livesValue - 2;
-                livesLabel.text = "LIVES: " + livesValue;
+                addDeath();
                 console.log("YOU GOT HIT BY A ROCK!");
             }
         });
@@ -452,15 +470,13 @@ var game = (function () {
         scoreLabel.text = "SCORE: " + scoreValue;
     }
     //Check player position and kills player if they fall
-    function checkDeathPosition() {
-        if (player.position.y < -20) {
-            livesValue--;
-            livesLabel.text = "LIVES: " + livesValue;
-            scene.remove(player);
-            player.position.set(0, 30, 0);
-            scene.add(player);
-            console.log("YOU HAVE DIED!");
-        }
+    function addDeath() {
+        livesValue--;
+        livesLabel.text = "LIVES: " + livesValue;
+        scene.remove(player);
+        player.position.set(0, 30, 0);
+        scene.add(player);
+        console.log("YOU HAVE DIED!");
     }
     //PointerLockChange Event Handler
     function pointerLockChange(event) {
@@ -507,7 +523,6 @@ var game = (function () {
     // Setup main game loop
     function gameLoop() {
         stats.update();
-        checkDeathPosition();
         checkControls();
         stage.update();
         // render using requestAnimationFrame
