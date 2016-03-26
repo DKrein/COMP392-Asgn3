@@ -19,6 +19,8 @@ Revision:
 9 - sounds added 
 10 - added random respawn of collectables and hazards
 11 - added background music
+12 - log added
+13 - fixed loop for background sound
 */
 
 // MAIN GAME FILE
@@ -203,6 +205,7 @@ var game = (() => {
     var livesLabel: createjs.Text;
     var scoreValue: number;
     var livesValue: number;
+    var bgSound: any;
 
 
     var manifest = [
@@ -264,6 +267,11 @@ var game = (() => {
         scoreLabel.x = config.Screen.WIDTH * 0.8;
         scoreLabel.y = (config.Screen.HEIGHT * 0.15) * 0.1;
     }
+    
+     function playBackgroundSound(): void{
+        bgSound = createjs.Sound.play("Background");
+        bgSound.on("complete",playBackgroundSound,this);
+    }
 
     function init() {
         // Create to HTMLElements
@@ -276,7 +284,7 @@ var game = (() => {
         //Set up Scoreboard
         setupScoreboard();
         
-        createjs.Sound.play("Background");
+        playBackgroundSound();
         
         //check to see if pointerlock is supported
         havePointerLock = 'pointerLockElement' in document ||

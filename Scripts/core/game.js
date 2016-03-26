@@ -18,6 +18,8 @@ Revision:
 9 - sounds added
 10 - added random respawn of collectables and hazards
 11 - added background music
+12 - log added
+13 - fixed loop for background sound
 */
 // MAIN GAME FILE
 // THREEJS Aliases
@@ -26,26 +28,16 @@ var Renderer = THREE.WebGLRenderer;
 var PerspectiveCamera = THREE.PerspectiveCamera;
 var BoxGeometry = THREE.BoxGeometry;
 var CubeGeometry = THREE.CubeGeometry;
-var PlaneGeometry = THREE.PlaneGeometry;
 var SphereGeometry = THREE.SphereGeometry;
 var CylinderGeometry = THREE.CylinderGeometry;
 var Geometry = THREE.Geometry;
-var AxisHelper = THREE.AxisHelper;
 var LambertMaterial = THREE.MeshLambertMaterial;
-var MeshBasicMaterial = THREE.MeshBasicMaterial;
 var LineBasicMaterial = THREE.LineBasicMaterial;
 var PhongMaterial = THREE.MeshPhongMaterial;
-var Material = THREE.Material;
-var Texture = THREE.Texture;
 var Line = THREE.Line;
-var Mesh = THREE.Mesh;
-var Object3D = THREE.Object3D;
 var SpotLight = THREE.SpotLight;
-var PointLight = THREE.PointLight;
 var AmbientLight = THREE.AmbientLight;
-var Color = THREE.Color;
 var Vector3 = THREE.Vector3;
-var Face3 = THREE.Face3;
 var CScreen = config.Screen;
 var Clock = THREE.Clock;
 var ImageUtils = THREE.ImageUtils;
@@ -175,6 +167,7 @@ var game = (function () {
     var livesLabel;
     var scoreValue;
     var livesValue;
+    var bgSound;
     var manifest = [
         { id: "Collision", src: "../../Assets/sounds/collision.mp3" },
         { id: "Collect", src: "../../Assets/sounds/collecting.mp3" },
@@ -219,6 +212,10 @@ var game = (function () {
         scoreLabel.x = config.Screen.WIDTH * 0.8;
         scoreLabel.y = (config.Screen.HEIGHT * 0.15) * 0.1;
     }
+    function playBackgroundSound() {
+        bgSound = createjs.Sound.play("Background");
+        bgSound.on("complete", playBackgroundSound, this);
+    }
     function init() {
         // Create to HTMLElements
         blocker = document.getElementById("blocker");
@@ -227,7 +224,7 @@ var game = (function () {
         setupCanvas();
         //Set up Scoreboard
         setupScoreboard();
-        createjs.Sound.play("Background");
+        playBackgroundSound();
         //check to see if pointerlock is supported
         havePointerLock = 'pointerLockElement' in document ||
             'mozPointerLockElement' in document ||
@@ -760,5 +757,4 @@ var game = (function () {
         scene: scene
     };
 })();
-
 //# sourceMappingURL=game.js.map
