@@ -542,6 +542,15 @@ var game = (() => {
                 console.log("YOU GOT HIT BY A ROCK!");
             }
         });
+        
+        //Rock eventHandler
+        rock.addEventListener('collision', (event) => {
+
+            if (event.name === "Ground" || event.name === "Wall") {
+                resetRock();
+            }
+        });        
+        
 
         // Add DirectionLine
         directionLineMaterial = new LineBasicMaterial({ color: 0xffff00 });
@@ -567,6 +576,12 @@ var game = (() => {
         window.addEventListener('resize', onWindowResize, false);
     }
     
+    //reset rock
+    function resetRock(): void {
+        scene.remove(rock);
+        rock.position.set(-4, 10, -5.5);
+    }
+    
     //Check player position and kills player if they fall
     function berryPicked(berryPicked): void {
         scene.remove(berryPicked);
@@ -590,6 +605,7 @@ var game = (() => {
             player.position.set(0, 30, 0);
             scene.add(player);
             console.log("YOU HAVE DIED!");
+            resetRock();
     }
 
     //PointerLockChange Event Handler
