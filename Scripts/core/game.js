@@ -110,6 +110,13 @@ var game = (function () {
     var berry;
     var berryLocation = new Array();
     var berryNum = 0;
+    var basketTexture;
+    var basketGeometry;
+    var basketPhysicsMaterial;
+    var basketMaterial;
+    var basket;
+    var basketLocation = new Array();
+    var basketNum = 0;
     var rockTexture;
     var rockGeometry;
     var rockPhysicsMaterial;
@@ -120,6 +127,9 @@ var game = (function () {
     var platePhysicsMaterial;
     var plateMaterial;
     var plate;
+    var plate2;
+    var rock2a;
+    var rock2b;
     //CreateJS Related Variables
     var assets;
     var canvas;
@@ -188,6 +198,10 @@ var game = (function () {
         berryLocation.push(new THREE.Vector3(-2, 1.5, 16));
         berryLocation.push(new THREE.Vector3(17, 1.5, 0));
         berryLocation.push(new THREE.Vector3(-15, 1.5, -2));
+        basketLocation.push(new THREE.Vector3(-16, 3, 14));
+        basketLocation.push(new THREE.Vector3(15, 3, 16));
+        basketLocation.push(new THREE.Vector3(-15, 3, -16));
+        basketLocation.push(new THREE.Vector3(17, 3, -15));
         // Instantiate Game Controls
         keyboardControls = new objects.KeyboardControls();
         mouseControls = new objects.MouseControls();
@@ -367,7 +381,6 @@ var game = (function () {
         berryTexture.wrapT = THREE.RepeatWrapping;
         berryMaterial = new PhongMaterial();
         berryMaterial.map = berryTexture;
-        //var berryPick = Math.floor(Math.random() * 3) + 1;
         berryGeometry = new BoxGeometry(.5, .5, .5);
         berryPhysicsMaterial = Physijs.createMaterial(berryMaterial, 0, 0);
         berry = new Physijs.ConvexMesh(berryGeometry, berryPhysicsMaterial, 0);
@@ -376,6 +389,19 @@ var game = (function () {
         berry.name = "Berry";
         scene.add(berry);
         console.log("Added Berry to scene");
+        basketTexture = new THREE.TextureLoader().load('../../Assets/images/bask.jpg');
+        basketTexture.wrapS = THREE.RepeatWrapping;
+        basketTexture.wrapT = THREE.RepeatWrapping;
+        basketMaterial = new PhongMaterial();
+        basketMaterial.map = basketTexture;
+        basketGeometry = new BoxGeometry(.5, .5, .5);
+        basketPhysicsMaterial = Physijs.createMaterial(basketMaterial, 0, 0);
+        basket = new Physijs.ConvexMesh(basketGeometry, basketPhysicsMaterial, 0);
+        basket.position.set(-16, 3, 14);
+        basket.receiveShadow = true;
+        basket.name = "Basket";
+        scene.add(basket);
+        console.log("Added basket to scene");
         //Collision Object
         rockTexture = new THREE.TextureLoader().load('../../Assets/images/rock.jpg');
         rockTexture.wrapS = THREE.RepeatWrapping;
@@ -388,6 +414,14 @@ var game = (function () {
         rock.position.set(-4, 10, -5.5);
         rock.receiveShadow = true;
         rock.name = "Rock";
+        rock2a = new Physijs.ConvexMesh(rockGeometry, rockPhysicsMaterial, 1);
+        rock2a.position.set(-17, 10, -8);
+        rock2a.receiveShadow = true;
+        rock2a.name = "Rock";
+        rock2b = new Physijs.ConvexMesh(rockGeometry, rockPhysicsMaterial, 1);
+        rock2b.position.set(-18, 10, 2);
+        rock2b.receiveShadow = true;
+        rock2b.name = "Rock";
         //Plate Object
         plateTexture = new THREE.TextureLoader().load('../../Assets/images/PressurePlate.jpg');
         plateTexture.wrapS = THREE.RepeatWrapping;
@@ -401,6 +435,11 @@ var game = (function () {
         plate.receiveShadow = true;
         plate.name = "Plate";
         scene.add(plate);
+        plate2 = new Physijs.ConvexMesh(plateGeometry, platePhysicsMaterial, 0);
+        plate2.position.set(-18.7, .5, -3);
+        plate2.receiveShadow = true;
+        plate2.name = "Plate2";
+        scene.add(plate2);
         // Player Object
         playerGeometry = new BoxGeometry(2, 4, 2);
         playerMaterial = Physijs.createMaterial(new LambertMaterial({ color: 0x00ff00 }), 0.4, 0);
@@ -421,11 +460,21 @@ var game = (function () {
             }
             if (event.name === "Berry") {
                 createjs.Sound.play("Collect");
-                berryPicked(event);
+                collectablePicked(event);
                 console.log("player ate a berry");
+            }
+            if (event.name === "Basket") {
+                createjs.Sound.play("Collect");
+                collectablePicked(event);
+                console.log("player ate a basket");
             }
             if (event.name === "Plate") {
                 scene.add(rock);
+                console.log("Added Rock to scene");
+            }
+            if (event.name === "Plate2") {
+                scene.add(rock2a);
+                scene.add(rock2b);
                 console.log("Added Rock to scene");
             }
             if (event.name === "DeathPlane") {
@@ -433,7 +482,7 @@ var game = (function () {
                 addDeath();
                 console.log("Dead by falling");
             }
-            if (event.name === "Rock" && rock.position.y > 2) {
+            if (event.name === "Rock" && event.position.y > 2) {
                 createjs.Sound.play("Collision");
                 addDeath();
                 console.log("YOU GOT HIT BY A ROCK!");
@@ -441,6 +490,16 @@ var game = (function () {
         });
         //Rock eventHandler
         rock.addEventListener('collision', function (event) {
+            if (event.name === "Ground" || event.name === "Wall") {
+                resetRock();
+            }
+        });
+        rock2a.addEventListener('collision', function (event) {
+            if (event.name === "Ground" || event.name === "Wall") {
+                resetRock();
+            }
+        });
+        rock2b.addEventListener('collision', function (event) {
             if (event.name === "Ground" || event.name === "Wall") {
                 resetRock();
             }
@@ -467,18 +526,31 @@ var game = (function () {
     //reset rock
     function resetRock() {
         scene.remove(rock);
+        scene.remove(rock2a);
+        scene.remove(rock2b);
         rock.position.set(-4, 10, -5.5);
+        rock2a.position.set(-17, 10, -8);
+        rock2b.position.set(-18, 10, 2);
     }
     //Check player position and kills player if they fall
-    function berryPicked(berryPicked) {
-        scene.remove(berryPicked);
-        berryNum = berryNum === (berryLocation.length - 1) ? 0 : (berryNum + 1);
-        berryPicked.position.x = berryLocation[berryNum].x;
-        berryPicked.position.y = berryLocation[berryNum].y;
-        berryPicked.position.z = berryLocation[berryNum].z;
-        scene.add(berryPicked);
-        scoreValue += 2;
+    function collectablePicked(collectable) {
+        scene.remove(collectable);
+        if (collectable.name === "Berry") {
+            berryNum = berryNum === (berryLocation.length - 1) ? 0 : (berryNum + 1);
+            collectable.position.x = berryLocation[berryNum].x;
+            collectable.position.y = berryLocation[berryNum].y;
+            collectable.position.z = berryLocation[berryNum].z;
+            scoreValue += 2;
+        }
+        if (collectable.name === "Basket") {
+            basketNum = basketNum === (basketLocation.length - 1) ? 0 : (basketNum + 1);
+            collectable.position.x = basketLocation[basketNum].x;
+            collectable.position.y = basketLocation[basketNum].y;
+            collectable.position.z = basketLocation[basketNum].z;
+            scoreValue += 5;
+        }
         scoreLabel.text = "SCORE: " + scoreValue;
+        scene.add(collectable);
     }
     //Check player position and kills player if they fall
     function addDeath() {
@@ -544,6 +616,9 @@ var game = (function () {
     }
     // Check Controls Function
     function checkControls() {
+        if (keyboardControls.moveBackward) {
+            console.log(player.position);
+        }
         if (keyboardControls.enabled) {
             velocity = new Vector3();
             var time = performance.now();
