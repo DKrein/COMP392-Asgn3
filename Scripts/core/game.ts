@@ -31,6 +31,7 @@ import BoxGeometry = THREE.BoxGeometry;
 import CubeGeometry = THREE.CubeGeometry;
 import PlaneGeometry = THREE.PlaneGeometry;
 import SphereGeometry = THREE.SphereGeometry;
+import CylinderGeometry = THREE.CylinderGeometry;
 import Geometry = THREE.Geometry;
 import AxisHelper = THREE.AxisHelper;
 import LambertMaterial = THREE.MeshLambertMaterial;
@@ -183,6 +184,14 @@ var game = (() => {
     var plate: Physijs.Mesh;
     
     var plate2: Physijs.Mesh;
+    var plate3: Physijs.Mesh;
+    
+    var logTexture: Texture;
+    var logGeometry: CylinderGeometry;
+    var logPhysicsMaterial: Physijs.Material;
+    var logMaterial: PhongMaterial;
+    var log: Physijs.Mesh;
+    
     var rock2a: Physijs.Mesh;
     var rock2b: Physijs.Mesh;
      
@@ -223,7 +232,7 @@ var game = (() => {
     function setupScoreboard(): void {
         // initialize  score and lives values
         scoreValue = 0;
-        livesValue = 10;
+        livesValue = 5;
 
         // Add Lives Label
         livesLabel = new createjs.Text(
@@ -544,6 +553,20 @@ var game = (() => {
         rock2b.receiveShadow = true;
         rock2b.name = "Rock";
         
+        logTexture = new THREE.TextureLoader().load('../../Assets/images/fallingbranch.jpg');
+        logTexture.wrapS = THREE.RepeatWrapping;
+        logTexture.wrapT = THREE.RepeatWrapping;
+        logMaterial = new PhongMaterial();
+        logMaterial.map = logTexture;
+        
+        logGeometry = new CylinderGeometry(1, 1, 10);
+        logPhysicsMaterial = Physijs.createMaterial(logMaterial, 0, 0);
+        log = new Physijs.ConvexMesh(logGeometry, logPhysicsMaterial, 1);
+        log.position.set(4, 10, 10);
+        log.rotation.x = 1.5708;
+        log.receiveShadow = true;
+        log.name = "Log";
+        
        
         //Plate Object
         plateTexture = new THREE.TextureLoader().load('../../Assets/images/PressurePlate.jpg');
@@ -564,6 +587,12 @@ var game = (() => {
         plate2.receiveShadow = true;
         plate2.name = "Plate2";
         scene.add(plate2);
+        
+        plate3 = new Physijs.ConvexMesh(plateGeometry, platePhysicsMaterial, 0);
+        plate3.position.set(4, .5, 9);
+        plate3.receiveShadow = true;
+        plate3.name = "Plate3";
+        scene.add(plate3);
 
         // Player Object
         playerGeometry = new BoxGeometry(2, 4, 2);
@@ -610,13 +639,18 @@ var game = (() => {
                 console.log("Added Rock to scene");
             }
             
+            if (event.name === "Plate3") {
+                scene.add(log);
+                console.log("Added Log to scene");
+            }
+            
             if (event.name === "DeathPlane") {
                 createjs.Sound.play("Falling");                
                 addDeath();
                 console.log("Dead by falling");
             }
             
-            if(event.name === "Rock" && event.position.y > 2){
+            if(event.name === "Rock" || event.name === "Log" && event.position.y > 2){
                 createjs.Sound.play("Collision");
                 addDeath();
                 console.log("YOU GOT HIT BY A ROCK!");
@@ -639,6 +673,13 @@ var game = (() => {
         });  
         
         rock2b.addEventListener('collision', (event) => {
+
+            if (event.name === "Ground" || event.name === "Wall") {
+                resetRock();
+            }
+        });  
+        
+         log.addEventListener('collision', (event) => {
 
             if (event.name === "Ground" || event.name === "Wall") {
                 resetRock();
@@ -675,9 +716,11 @@ var game = (() => {
         scene.remove(rock);
         scene.remove(rock2a);
         scene.remove(rock2b);
+        scene.remove(log);
         rock.position.set(-4, 10, -5.5);
         rock2a.position.set(-17, 10, -8);
         rock2b.position.set(-18, 10, 2);
+        log.position.set(4, 10, 10);
     }
     
     //Check player position and kills player if they fall
