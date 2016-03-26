@@ -17,6 +17,7 @@ Revision:
 8 - added a deathplane
 9 - sounds added
 10 - added random respawn of collectables and hazards
+11 - added background music
 */
 // MAIN GAME FILE
 // THREEJS Aliases
@@ -149,7 +150,7 @@ var game = (function () {
     var plate2;
     var rock2a;
     var rock2b;
-    //CreateJS Related Variables
+    //createjs Related Variables
     var assets;
     var canvas;
     var stage;
@@ -160,7 +161,8 @@ var game = (function () {
     var manifest = [
         { id: "Collision", src: "../../Assets/sounds/collision.mp3" },
         { id: "Collect", src: "../../Assets/sounds/collecting.mp3" },
-        { id: "Falling", src: "../../Assets/sounds/falling.mp3" }
+        { id: "Falling", src: "../../Assets/sounds/falling.mp3" },
+        { id: "Background", src: "../../Assets/sounds/background.mp3" }
     ];
     //Create Preloader to load Assets
     function preload() {
@@ -204,10 +206,11 @@ var game = (function () {
         // Create to HTMLElements
         blocker = document.getElementById("blocker");
         instructions = document.getElementById("instructions");
-        //Set up CreateJS Canvas and Stage
+        //Set up createjs Canvas and Stage
         setupCanvas();
         //Set up Scoreboard
         setupScoreboard();
+        createjs.Sound.play("Background");
         //check to see if pointerlock is supported
         havePointerLock = 'pointerLockElement' in document ||
             'mozPointerLockElement' in document ||
