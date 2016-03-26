@@ -1,4 +1,23 @@
 /// <reference path="_reference.ts"/>
+/*
+Author: Christine Cho and Douglas krein
+Last Modified by: Douglas krein
+Last Modified: 03-25-2016
+File description:
+- Controls the general game information, like creating scenario, collectables, hazards, controll score system, controls
+
+Revision:
+1 - added walls and floor
+2 - added texture to the primitive blocks
+3 - added skybox around the level
+4 - code was cleaned
+5 - added score and life system
+6 - added collectables and points increment
+7 - added pressure plates to active hazards
+8 - added a deathplane
+9 - sounds added
+10 - added random respawn of collectables and hazards
+*/
 // MAIN GAME FILE
 // THREEJS Aliases
 var Scene = Physijs.Scene;
@@ -616,9 +635,6 @@ var game = (function () {
     }
     // Check Controls Function
     function checkControls() {
-        if (keyboardControls.moveBackward) {
-            console.log(player.position);
-        }
         if (keyboardControls.enabled) {
             velocity = new Vector3();
             var time = performance.now();
